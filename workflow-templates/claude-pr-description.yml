@@ -1,0 +1,58 @@
+name: Generate PR Description
+
+on:
+  pull_request:
+    types: [opened]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  generate-description:
+    runs-on: ubuntu-latest
+    if: "!contains(github.event.pull_request.body, '- [x]')"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate PR description with Claude
+        uses: anthropics/claude-code-action@beta
+        id: claude
+        with:
+          anthropic_api_key: ${{ secrets.CLAUDE_CODE_API_KEY }}
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          model: claude-haiku-4-5-20251001
+          direct_prompt: |
+            Generate a pull request description for this PR using the template below.
+            Base it strictly on the git diff and commit messages — do not invent changes.
+            Fill in every section. For the Checklist, check items clearly satisfied by the diff.
+            Output ONLY the filled-in markdown — no preamble, no explanation.
+
+            Template:
+            ## Summary
+
+            ## Type of change
+            - [ ] Bug fix
+            - [ ] New feature
+            - [ ] Refactor / cleanup
+            - [ ] Tests only
+            - [ ] Docs / config
+
+            ## Changes
+
+            ## How to test
+
+            ## Checklist
+            - [ ] Tests pass locally
+            - [ ] No secrets or `.env` values committed
+            - [ ] No leftover debug logging or print statements
+            - [ ] New public functions are self-documented or have docstrings / JSDoc
+
+      - name: Update PR body
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          DESCRIPTION: ${{ steps.claude.outputs.response }}
+        run: gh pr edit "$PR_NUMBER" --body "$DESCRIPTION"

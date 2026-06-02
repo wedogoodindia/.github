@@ -1,0 +1,6 @@
+{
+  "name": "Claude Code Review",
+  "description": "Automated PR review powered by Claude. Runs on every PR and responds to @claude mentions in comments.",
+  "iconName": "octicon workflow",
+  "categories": ["Automation", "Code Review"]
+}

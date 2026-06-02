@@ -1,0 +1,6 @@
+{
+  "name": "Generate PR Description",
+  "description": "Automatically generates a PR description using Claude when a pull request is opened.",
+  "iconName": "octicon workflow",
+  "categories": ["Automation"]
+}
