@@ -7,15 +7,24 @@ Thank you for contributing to WeDoGood. This guide covers the conventions shared
 ## Getting started
 
 1. Fork or clone the repository.
-2. Create a branch from `main`:
+2. Create a branch from `qa`:
    ```bash
    git checkout -b feat/your-feature-name
    ```
-3. Make your changes, commit, and open a pull request.
+3. Make your changes, commit, and open a pull request targeting `qa`.
 
 ---
 
-## Branch naming
+## Branches
+
+| Branch | Purpose |
+|--------|---------|
+| `main` | Production — only merged into from `qa` after QA sign-off |
+| `qa` | QA / staging — the default target for all feature branches |
+
+Feature branches should be created from and merged back into `qa`. Once a release is validated on the QA environment, `qa` is merged into `main` to deploy to production.
+
+### Branch naming
 
 | Prefix | When to use |
 |--------|-------------|
@@ -40,50 +49,41 @@ Keep the subject line under 72 characters. Add a body when the *why* is non-obvi
 
 ---
 
-## Python repos
+## Local setup
 
-Python repos in this org are managed with [`uv`](https://docs.astral.sh/uv/).
-
-```bash
-# Install dependencies
-uv sync
-
-# Run tests
-uv run pytest
-
-# Add a runtime dependency
-uv add <package>
-
-# Add a dev-only dependency
-uv add --dev <package>
-```
-
-- Never edit `requirements.txt` by hand.
-- Always commit both `pyproject.toml` **and** `uv.lock`.
-
----
-
-## JavaScript / Node repos
+All services are containerised. Copy the example env file and start the stack:
 
 ```bash
-# Install dependencies
-npm install
+cp .env.example .env
+# Fill in any required values in .env
 
-# Run tests
-npm test
-
-# Start dev server
-npm run dev
+docker compose up
 ```
+
+To rebuild images after a code change (particularly backend services):
+
+```bash
+docker compose up --build
+```
+
+Check the repo's README for any service-specific ports or one-off setup steps.
 
 ---
 
 ## Pull requests
 
 - Keep PRs small and focused — one logical change per PR.
-- Link the related issue in the PR description (`Closes #123`).
-- All checklist items in the PR template must be ticked before requesting review.
-- Prefer rebasing over merging to keep a clean history.
+- Target `qa` (not `main`) unless you are cutting a production release.
+- An automated Claude Code review will run on every PR. Address or explicitly dismiss its findings before requesting human review.
+
+---
+
+## Deployment
+
+| Layer | Platform | Trigger |
+|-------|----------|---------|
+| Frontend | [Vercel](https://vercel.com) | Auto-deploy on push to `qa` and `main` |
+| Backend | [Render](https://render.com) | Auto-deploy on push to `qa` and `main` |
 
 ---
 
